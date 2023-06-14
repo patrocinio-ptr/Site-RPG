@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block style %}
+<style>
+    html,
+    body {
+        height: 100%;
+    }
+
+    .form-signin {
+        max-width: 330px;
+        padding: 1rem;
+    }
+
+    .form-signin .form-floating:focus-within {
+        z-index: 2;
+    }
+
+    .form-signin input[type="email"] {
+        margin-bottom: -1px;
+        border-bottom-right-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    .form-signin input[type="password"] {
+        margin-bottom: 10px;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center py-4 text-center h-100">
+    <div class="form-signin m-auto">
+        <h3 class="h3 mb-3 fw-normal">Login</h3>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-danger">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+        {% endwith %}
+        <form method="POST" action="/login">
+            <div class="form-floating">
+                <input class="form-control" type="email" name="email" placeholder="Email" id="email">
+                <label for="email">Email</label>
+            </div>
+            <div class="form-floating">
+                <input class="form-control" type="password" name="password" placeholder="Senha" id="password">
+                <label for="password">Senha</label>
+            </div>
+            <button class="btn btn-primary w-100 py-2 mt-3">Login</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
