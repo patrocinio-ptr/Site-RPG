@@ -2,8 +2,11 @@
 
 {% block content %}
 <div class="d-flex align-items-center flex-column justify-content-center h-100">
+    <div class="mb-3">
+        <img src="{{ current_user.avatar }}" alt="Avatar" class="rounded-circle">
+    </div>
     <h1 class="fs-3">
-        Bem-vindo(a), {{ username }}!
+        Bem-vindo(a), {{ current_user.username }}!
     </h1>
     <h2 class="fw-normal fs-6">
         Esse é o seu perfil!

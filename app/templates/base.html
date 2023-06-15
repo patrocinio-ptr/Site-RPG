@@ -8,35 +8,45 @@
     <title>rpg-dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
-    {% block style %}{% endblock %}
+    <script src="https://kit.fontawesome.com/9aea94aa37.js" crossorigin="anonymous"></script>
+    {% block style %}
+        <style>
+            .btn-discord {
+                --bs-btn-bg: hsl(235, 86%, 65%);
+                --bs-btn-border-color: hsl(235, 86%, 65%);
+                --bs-btn-hover-bg: hsl(235, 78%, 57%);
+                --bs-btn-hover-border-color: hsl(235, 78%, 57%);
+                --bs-btn-active-bg: hsl(235, 79%, 55%);
+                --bs-btn-active-border-color: hsl(235, 79%, 55%);
+            }
+        </style>
+    {% endblock %}
 </head>
 
 <body>
     <section class="vh-100 d-flex flex-column">
         <div>
-            <nav class="py-2">
-                <div class="container d-flex flex-wrap">
+            <nav>
+                <div class="container d-flex flex-wrap align-items-center gap-2 p-3">
                     <ul class="nav me-auto">
-                        <li class="nav-item"><a href="{{ url_for('main.index') }}" class="nav-link link-body-emphasis px-2">
-                            Início
+                        <li class="nav-item"><a href="{{ url_for('main.index') }}" class="nav-link link-body-emphasis p-2">
+                            rpg-dashboard
                         </a></li>
                     </ul>
                     <ul class="nav">
                         {% if current_user.is_authenticated %}
-                        <li class="nav-item"><a href="{{ url_for('main.profile') }}" class="nav-link link-body-emphasis px-2">
+                        <li class="nav-item"><a href="{{ url_for('main.profile') }}" class="nav-link link-body-emphasis p-2">
                             Perfil
                         </a></li>
                         {% endif %}
                         {% if not current_user.is_authenticated %}
-                        <li class="nav-item"><a href="{{ url_for('auth.login') }}" class="nav-link link-body-emphasis px-2">
+                        <li class="nav-item"><a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-discord btn-sm mx-2">
+                            <i class="fa-brands fa-discord me-1"></i>
                             Login
-                        </a></li>
-                        <li class="nav-item"><a href="{{ url_for('auth.signup') }}" class="nav-link link-body-emphasis px-2">
-                            Registrar
                         </a></li>
                         {% endif %}
                         {% if current_user.is_authenticated %}
-                        <li class="nav-item"><a href="{{ url_for('auth.logout') }}" class="nav-link link-body-emphasis px-2">
+                        <li class="nav-item"><a href="{{ url_for('auth.logout') }}" class="nav-link link-body-emphasis p-2">
                             Logout
                         </a></li>
                         {% endif %}

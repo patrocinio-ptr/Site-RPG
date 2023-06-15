@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Blueprint, redirect, url_for, request
 from flask_login import login_user, login_required, logout_user
-from werkzeug.security import generate_password_hash, check_password_hash
+import os
+import requests
 
 from . import db
 from .models import User
@@ -10,50 +11,10 @@ auth = Blueprint("auth", __name__)
 
 @auth.route("/login")
 def login():
-    return render_template("login.html")
-
-
-@auth.route("/login", methods=["POST"])
-def login_post():
-    email = request.form.get("email")
-    password = request.form.get("password")
-
-    user = User.query.filter_by(email=email).first()
-
-    if not user or not check_password_hash(user.password, password):
-        flash("Confira suas credenciais e tente novamente.")
-        return redirect(url_for("auth.login"))
-
-    login_user(user)
-
-    return redirect(url_for("main.profile"))
-
-
-@auth.route("/signup")
-def signup():
-    return render_template("signup.html")
-
-
-@auth.route("/signup", methods=["POST"])
-def signup_post():
-    email = request.form.get("email")
-    username = request.form.get("username")
-    password = request.form.get("password")
-
-    user = User.query.filter_by(email=email).first()
-
-    if user:
-        flash("Endereço de email já existe")
-        return redirect(url_for("auth.signup"))
-
-    new_user = User(email=email, username=username, password=generate_password_hash(password, method="sha256"))
-
-    db.session.add(new_user)
-    db.session.commit()
-
-    login_user(new_user)
-
-    return redirect(url_for("main.index"))
+    redirect_uri = request.host_url + "callback"
+    discord_client_id = os.environ.get("DISCORD_CLIENT_ID")
+    discord_auth_url = f"https://discord.com/api/oauth2/authorize?client_id={discord_client_id}&redirect_uri={redirect_uri}&response_type=code&scope=identify"  # noqa
+    return redirect(discord_auth_url)
 
 
 @auth.route("/logout")
@@ -61,3 +22,44 @@ def signup_post():
 def logout():
     logout_user()
     return redirect(url_for("main.index"))
+
+
+@auth.route("/callback")
+def callback():
+    code = request.args.get("code")
+    discord_client_id = os.environ.get("DISCORD_CLIENT_ID")
+    discord_client_secret = os.environ.get("DISCORD_CLIENT_SECRET")
+    data = {
+        "client_id": discord_client_id,
+        "client_secret": discord_client_secret,
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": request.host_url + "callback",
+        "scope": "identify",
+    }
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    token_response = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
+    access_token = token_response.json()["access_token"]
+
+    user_response = requests.get(
+        "https://discord.com/api/users/@me", headers={"Authorization": f"Bearer {access_token}"}
+    )
+    user_data = user_response.json()
+
+    if access_token:
+        user = User.query.filter_by(discord_id=user_data["id"]).first()
+
+        avatar_url = f"https://cdn.discordapp.com/avatars/{user_data['id']}/{user_data['avatar']}"
+
+        if user is None:
+            user = User(discord_id=user_data["id"], username=user_data["username"], avatar=avatar_url)
+            db.session.add(user)
+        else:
+            user.username = user_data["username"]
+            user.avatar = avatar_url
+
+        db.session.commit()
+        login_user(user)
+        return redirect(url_for("main.profile"))
+    else:
+        return "Failed to obtain access token"
